@@ -7,12 +7,12 @@ type Handler func(http.Handler) http.Handler
 
 // Container - for middleware chaining
 type Container struct {
-	middlewareHandlers []Handler
+	Handlers []Handler
 }
 
 // Chain - chain factory
-func Chain(middlewareHandlers ...Handler) Container {
-	return Container{append(([]Handler)(nil), middlewareHandlers...)}
+func Chain(handlers ...Handler) Container {
+	return Container{append(([]Handler)(nil), handlers...)}
 }
 
 // Then - Then dunction
@@ -21,8 +21,8 @@ func (c Container) Then(h http.Handler) http.Handler {
 		h = http.DefaultServeMux
 	}
 
-	for i := range c.middlewareHandlers {
-		h = c.middlewareHandlers[len(c.middlewareHandlers)-1-i](h)
+	for i := range c.Handlers {
+		h = c.Handlers[len(c.Handlers)-1-i](h)
 	}
 
 	return h
@@ -37,15 +37,15 @@ func (c Container) ThenFunc(fn http.Handler) http.Handler {
 }
 
 // Append extends a chain, adding the specified constructors
-func (c Container) Append(middlewareHandlers ...Handler) Container {
-	newCons := make([]Handler, 0, len(c.middlewareHandlers)+len(middlewareHandlers))
-	newCons = append(newCons, c.middlewareHandlers...)
-	newCons = append(newCons, middlewareHandlers...)
+func (c Container) Append(handlers ...Handler) Container {
+	newCons := make([]Handler, 0, len(c.Handlers)+len(handlers))
+	newCons = append(newCons, c.Handlers...)
+	newCons = append(newCons, handlers...)
 
 	return Container{newCons}
 }
 
 // Extend extends a chain by adding the specified chain
 func (c Container) Extend(middlewareChain Container) Container {
-	return c.Append(middlewareChain.middlewareHandlers...)
+	return c.Append(middlewareChain.Handlers...)
 }
