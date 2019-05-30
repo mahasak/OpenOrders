@@ -35,15 +35,30 @@ var appenderMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func main() {
+var helloWorld = func(w http.ResponseWriter, r *http.Request) {
+	log.Println("log")
+	log.Println("Header", r.Header.Get("X-TOKEN"))
+	fmt.Fprint(w, "Hello!")
+}
 
-	helloWorld := func(w http.ResponseWriter, r *http.Request) {
-		log.Println("log")
-		log.Println("Header", r.Header.Get("X-TOKEN"))
-		fmt.Fprint(w, "Hello!")
+func multiMiddleware(f http.HandlerFunc, m ...middleware) http.HandlerFunc {
+	if len(m) < 1 {
+		return f
 	}
 
-	http.HandleFunc("/", appenderMiddleware(logMiddleware(authenticationMiddleware(helloWorld))))
+	return m[0](multiMiddleware(f, m[1:cap(m)]...))
+}
+
+func main() {
+	httpPipeline := []middleware{
+		logMiddleware,
+		appenderMiddleware,
+		authenticationMiddleware,
+	}
+
+	http.HandleFunc("/", (appenderMiddleware(authenticationMiddleware(helloWorld))))
+	http.HandleFunc("/2", multiMiddleware(helloWorld))
+	http.HandleFunc("/3", multiMiddleware(helloWorld, httpPipeline...))
 
 	log.Println("Now server is running on port 5000")
 	http.ListenAndServe(":5000", nil)
