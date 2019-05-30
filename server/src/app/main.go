@@ -4,14 +4,47 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("log")
-		fmt.Fprint(w, "Hello!")
-	})
+type middleware func(http.HandlerFunc) http.HandlerFunc
 
-	log.Println("Now server is running on port 3000")
-	http.ListenAndServe(":3000", nil)
+var authenticationMiddleware = func(f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Authentication")
+		f.ServeHTTP(w, r)
+	}
+}
+
+var logMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Logger")
+		h.ServeHTTP(w, r)
+		log.SetOutput(os.Stdout)
+		log.Println(r.Method, r.Host, r.URL)
+	}
+}
+
+var appenderMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Add("X-TOKEN", "1234")
+		fmt.Println("Appender")
+		h.ServeHTTP(w, r)
+		log.SetOutput(os.Stdout)
+		log.Println(r.Method, r.Host, r.URL)
+	}
+}
+
+func main() {
+
+	helloWorld := func(w http.ResponseWriter, r *http.Request) {
+		log.Println("log")
+		log.Println("Header", r.Header.Get("X-TOKEN"))
+		fmt.Fprint(w, "Hello!")
+	}
+
+	http.HandleFunc("/", appenderMiddleware(logMiddleware(authenticationMiddleware(helloWorld))))
+
+	log.Println("Now server is running on port 5000")
+	http.ListenAndServe(":5000", nil)
 }
