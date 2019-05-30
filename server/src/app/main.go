@@ -18,11 +18,26 @@ var helloWorld = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 })
 
 func main() {
-	privatePipeline := []middleware.Handler{middleware.LogMiddleware, middleware.AppenderMiddleware, middleware.AuthenticationMiddleware}
-	publicPipeline := []middleware.Handler{middleware.LogMiddleware, middleware.AppenderMiddleware}
+	privatePipeline := []middleware.Handler{
+		middleware.LogMiddleware,
+		middleware.AppenderMiddleware,
+		middleware.AuthenticationMiddleware,
+	}
 
-	http.Handle("/public", middleware.Chain(publicPipeline...).Then(finalHandler))
-	http.Handle("/private", middleware.Chain(privatePipeline...).Then(finalHandler))
+	publicPipeline := []middleware.Handler{
+		middleware.LogMiddleware,
+		middleware.AppenderMiddleware,
+	}
+
+	http.Handle(
+		"/public",
+		middleware.Chain(publicPipeline...).Then(finalHandler),
+	)
+
+	http.Handle(
+		"/private",
+		middleware.Chain(privatePipeline...).Then(finalHandler),
+	)
 
 	log.Println("Now server is running on port 5000")
 	http.ListenAndServe(":5000", nil)
