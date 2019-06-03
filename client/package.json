@@ -16,15 +16,16 @@
   "author": "Mahasak Pijittum",
   "license": "ISC",
   "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
     "preset": "ts-jest",
     "moduleFileExtensions": [
       "ts",
       "tsx",
       "js"
     ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.ts"
-    ],
+    
     "moduleNameMapper": {
       ".+\\.css$": "<rootDir>/src/styleMock.ts"
     },
