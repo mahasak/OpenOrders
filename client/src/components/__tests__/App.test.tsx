@@ -17,7 +17,6 @@ test("App Component can change toggle status with clicking toggle switch", async
   const { container, getByTestId } = render(<App />);
   const toggleButton = getByTestId("toggle-input");
   expect(container).toHaveTextContent(/the button is off/i);
-  
 
   fireEvent.click(toggleButton);
   expect(container).toHaveTextContent(/the button is on/i);
