@@ -1,8 +1,0 @@
-bin/
-pkg/
-../.DS_Store
-.DS_Store
-src/.DS_Store
-src/app/.DS_Store
-src/app/app
-src/app/vendor/.DS_Store
